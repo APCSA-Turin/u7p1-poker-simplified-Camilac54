@@ -7,139 +7,103 @@ public class Game{
         int p1R = Utility.getHandRanking(p1Hand); // gets player ONE ranks
         int p2R = Utility.getHandRanking(p2Hand); // gets player TWO ranks 
 
-        if (p1R > p2R) {
+        if (p1R > p2R) { // checks if player 1 wins over player 2
             return "Player 1 wins!";
         }
 
-        if (p2R > p1R) {
+        if (p2R > p1R) { // checks if player 2 wins over player 1
             return "Player 2 wins!";
         }
 
-        if (p1R == 5 && p2R == 5) {
-            int p1ThreeRank = getThreeHand(p1, communityCards);
-            int p2ThreeRank = getThreeHand(p2, communityCards);
+        if (p1R == 5 && p2R == 5) { // checks if both players have 5 for rankings, which is the tie-breaking part
+            int p1ThreeRank = getThreeHand(p1, communityCards); // calculates the ranking of threeOfAKind for player 1
+            int p2ThreeRank = getThreeHand(p2, communityCards); // calculates the ranking of threeOfAKind for player 2
 
-            if (p1ThreeRank > p2ThreeRank) {
+            if (p1ThreeRank > p2ThreeRank) { // compares both of the player rankings 
                 return "Player 1 wins!";
-            } else if (p2ThreeRank > p1ThreeRank) {
+            } else { 
                 return "Player 2 wins!";
             }
         }
 
-        int p1High = getHighCard(p1, communityCards);
-        int p2High = getHighCard(p2, communityCards);
+        int p1HighInHand = getHighCard(p1); // gets highest card for player 1  
+        int p2HighInHand = getHighCard(p2); // gets highest card for player 2
 
-        if (p1High > p2High) {
+        if (p1HighInHand > p2HighInHand) {  // checks if player 1 wins over player 2
             return "Player 1 wins!";
         }
 
-        if (p2High > p1High) {
+        if (p2HighInHand > p1HighInHand) {  // checks if player 2 wins over player 1
             return "Player 2 wins!";
         }
 
-        int p1HighInHand = getHighCardInHand(p1);
-        int p2HighInHand = getHighCardInHand(p2);
-
-        if (p1HighInHand > p2HighInHand) {
-            return "Player 1 wins!";
-        }
-
-        if (p2HighInHand > p1HighInHand) {
-            return "Player 2 wins!";
-        }
-
-        return "Tie!"; 
+        return "Tie!"; // returns tie if all else fails 
     }
 
-    public static void play(){ // simulate card playing
-        Deck deck = new Deck();
-        deck.shuffleDeck();
+    public static void play() {
+        Deck deck = new Deck(); // creates new deck
+        deck.shuffleDeck(); // shuffles deck
        
-        Player p1 = new Player();
+        // two new players
+        Player p1 = new Player(); 
         Player p2 = new Player();
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) { // makes the players draw/deal two times 
             p1.addCard(deck.drawCard());
             p2.addCard(deck.drawCard());
         }
        
-        ArrayList<Card> communityCards = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+        ArrayList<Card> communityCards = new ArrayList<>(); // community deck
+        for (int i = 0; i < 3; i++) { // gives community deck three cards/draws
             communityCards.add(deck.drawCard());
         }
 
-        String p1Hand = p1.playHand(communityCards);
-        String p2Hand = p2.playHand(communityCards);
+        String p1Hand = p1.playHand(communityCards); // Plays player 1's hand 
+        String p2Hand = p2.playHand(communityCards); // Plays player 2's hand 
        
-        String result = determineWinner(p1, p2, p1Hand, p2Hand, communityCards);
+        String result = determineWinner(p1, p2, p1Hand, p2Hand, communityCards); // determines winner of the play
      
-        System.out.println("Player 1 Hand: " + p1Hand);
+        // Prints results
+        System.out.println("Player 1 Hand: " + p1Hand); 
         System.out.println("Player 2 Hand: " + p2Hand);
         System.out.println(result);
    
     }
 
-    private static int getHighCard(Player player, ArrayList<Card> communityCards)
-    {
-        ArrayList<Card> allCards = new ArrayList<>(communityCards);
-        allCards.addAll(player.getHand());
-        int highCardValue = -1;
-        for (Card card : allCards)
-        {
-            int cardValue = Utility.getRankValue(card.getRank());
-            if (cardValue > highCardValue)
-            {
-                highCardValue = cardValue;
+     // HELPER METHODS FOR CLARITY 
+    private static int getHighCard (Player player) {
+        int highCard = -1; // beginning value 
+        for (Card one : player.getHand()) { // iterates through all of the cards in players hand
+            int cardVal = Utility.getRankValue(one.getRank());
+            if (cardVal > highCard) { // checks if the rank of the card is greater than the current high card
+                highCard = cardVal; // if its true, changes high card to current card
             }
         }
    
-        return highCardValue;
+        return highCard; // returns high card 
     }
 
-    private static int getThreeHand(Player player, ArrayList<Card> communityCards)
-    {
-        ArrayList<Card> allCards = new ArrayList<>(communityCards);
-        allCards.addAll(player.getHand());
-        ArrayList<Integer> values = new ArrayList<>();
+    private static int getThreeHand(Player player, ArrayList<Card> communityCards) {
+        ArrayList<Card> allCards = new ArrayList<>(communityCards); // all cards variable, begins with community cards
+        allCards.addAll(player.getHand()); // adds all of the players cards to the array list
+        ArrayList<Integer> values = new ArrayList<>(); // new values array list
 
-
-        for (Card card : allCards)
-        {
-            values.add(Utility.getRankValue(card.getRank()));
+        for (Card one : allCards) { // iterates through all cards
+            values.add(Utility.getRankValue(one.getRank())); // adds the rank of each card to values
         }
-   
        
-        for (Integer value : values)
-        {
+        for (Integer one : values) { // iterates through (unique) values
             int count = 0;
-            for (int v : values)
-            {
-            if (v == value)
-            {
-                count++;
+            for (int i : values) { // iterates through the int version of the values
+                if (i == one) { // if the unique value matches the int value 
+                    count++; // adding onto count 
                 }  
             }
-            if (count == 3)
-            {
-                return value;
-            }
-        }
-   
-        return -1;
-    }
 
-    private static int getHighCardInHand(Player player)
-    {
-        int highCardValue = -1;  
-        for (Card card : player.getHand())
-        {
-            int cardValue = Utility.getRankValue(card.getRank());
-            if (cardValue > highCardValue)
-            {
-                highCardValue = cardValue;
+            if (count == 3) { // checks if the count is three (would be a three hand if so)
+                return one; // returns the rank of the three of a kind 
             }
         }
-   
-        return highCardValue;  
+        return -1; // returns -1 if there is no three of a kind found 
     }
 }
