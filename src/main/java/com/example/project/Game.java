@@ -4,18 +4,18 @@ import java.util.ArrayList;
 
 public class Game{
     public static String determineWinner(Player p1, Player p2,String p1Hand, String p2Hand,ArrayList<Card> communityCards){
-        int p1Rank = Utility.getHandRanking(p1Hand);
-        int p2Rank = Utility.getHandRanking(p2Hand);
+        int p1R = Utility.getHandRanking(p1Hand); // gets player ONE ranks
+        int p2R = Utility.getHandRanking(p2Hand); // gets player TWO ranks 
 
-        if (p1Rank > p2Rank) {
+        if (p1R > p2R) {
             return "Player 1 wins!";
         }
 
-        if (p2Rank > p1Rank) {
+        if (p2R > p1R) {
             return "Player 2 wins!";
         }
 
-        if (p1Rank == 5 && p2Rank == 5) {
+        if (p1R == 5 && p2R == 5) {
             int p1ThreeRank = getThreeHand(p1, communityCards);
             int p2ThreeRank = getThreeHand(p2, communityCards);
 
@@ -51,8 +51,8 @@ public class Game{
         return "Tie!"; 
     }
 
-    public static void play(){ //simulate card playing
-    Deck deck = new Deck();
+    public static void play(){ // simulate card playing
+        Deck deck = new Deck();
         deck.shuffleDeck();
        
         Player p1 = new Player();

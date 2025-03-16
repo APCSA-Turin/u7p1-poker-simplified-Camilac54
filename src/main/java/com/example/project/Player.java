@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class Player{
     private ArrayList<Card> hand;
-    private ArrayList<Card> allCards; //the current community cards + hand
+    private ArrayList<Card> allCards; // the current community cards + hand
     String[] suits  = Utility.getSuits();
     String[] ranks = Utility.getRanks();
     
@@ -19,227 +19,181 @@ public class Player{
         hand.add(c); // adding card "c" into hand
     }
 
-    public String playHand(ArrayList<Card> communityCards){  
-        allCards = new ArrayList<>(hand);
-        allCards.addAll(communityCards);
-        sortAllCards(); // Sorting the cards
+    public String playHand(ArrayList<Card> communityCards){ 
+        allCards = new ArrayList<>(hand); // creating a new list, starting with only hand list
+        allCards.addAll(communityCards); // adding community cards to the new list
+        sortAllCards(); // sorting cards with sort method 
 
+        ArrayList<Integer> rFreq = findRankingFrequency(); // ranking frequency 
+        ArrayList<Integer> sFreq = findSuitFrequency(); // suit frequency
 
-        ArrayList<Integer> rFreq = findRankingFrequency(); // Finding rank frequency
-        ArrayList<Integer> sFreq = findSuitFrequency(); // Finding suit frequency
+        System.out.println("rFreq: " + rFreq); // testing code
 
-        // Straight checking
-        int consecutive = 0;
-        int straightCount = 0;
-        int prevRank = -1;
-        boolean isStraight = false;
+        boolean isStraight = false; // boolean to check if straight
+        boolean flush = false; // boolean to check if there is a flush
 
-
-        for (Card one : allCards) { // Used to check through all the cards to find hand
-            int currentRank = Utility.getRankValue(one.getRank());
-            if (prevRank != -1 && currentRank == prevRank + 1) {
-                consecutive ++; // Adding onto consecutive if statement is true
-                straightCount ++; // Adding onto straight counter
-                if (consecutive == 4) { // Checks if consecutive is 4, which means its a Straight
-                    isStraight = true;
-                    break;
-                }
-            }
-            else if (prevRank != currentRank) {
-                consecutive = 0;
-            }
-            prevRank = currentRank;
-        }
-
-        // Flush checking
-        boolean flush = false;
-        for (int count : sFreq) {
-            if (count == 5) {
+        // Checking for flush 
+        for (int count : sFreq) { // iterating through sFreq
+            if (count >= 5) { // checking if there is a flush
                 flush = true;
                 break;
             }
         }
 
-        // Rank frequency checking
-        int fourOfAKind = 0;
-        int threeOfAKind = 0;
-        // boolean fourOfAKind = false;
-        // boolean threeOfAKind = false;
-        // boolean pair = false;
-        int pairCount = 0;
-
-        for (int count : rFreq) {
-            if (count == 4) {
-                fourOfAKind ++;
-            }
-           
-            if (count == 3) {
-                threeOfAKind ++;
-            }
-
-            if (count == 2) {
-                pairCount ++;
+        // Checking for a straight
+        int consecutive = 0;
+        for (int i = 0; i < 13; i ++) { 
+            if (rFreq.get(i) > 0) { // checks the rank of current card
+                consecutive ++;
+                if (consecutive == 5) { // checks if we have a straight
+                    isStraight = true;
+                    break;
+                }
+            } else {
+                consecutive = 0; // makes consecutive 0 if it is not the same card (a straight)
             }
         }
 
-        // if (!isStraight && allCards.get(0).getRank().equals("2") && allCards.get(allCards.size() - 1).getRank().equals("A")) { 
-        //     isStraight = true;
-        // }
+        if (!isStraight && rFreq.get(0) > 0 && rFreq.get(1) > 0 && rFreq.get(2) > 0 && rFreq.get(3) > 0 && rFreq.get(12) > 0) { // checking for ace-low straight
+            isStraight = true;
+        }
 
-        if (flush && isStraight && allCards.get(allCards.size() - 1).getRank().equals("A")) {
+        // new variables to check fours, threes, and pairs!
+        int fourOfAKind = 0;  
+        int threeOfAKind = 0;
+        int pairCount = 0;
+        int threeRank = -1;
+        int pairRank1 = -1;
+        int pairRank2 = -1;
+    
+
+        // counting rank occurances
+        for (int i = 0; i < rFreq.size(); i ++) { // iterates through every rank in rank Frequency
+            int count = rFreq.get(i); 
+            if (count == 4) { // if a four is found, add onto fourOfAKind variable
+                fourOfAKind ++;
+            }
+
+            if (count == 3) { // if a three is found, add onto threeOfAKind variable
+                threeOfAKind ++;
+                threeRank = i;
+
+            }
+
+            if (count == 2) { // if a pair is found...
+                if (pairRank1 == -1 ) { // check if the first pair is empty --> there is only ONE pair so far
+                    pairRank1 = i;
+                } else { // if there is already a pair ...
+                    pairRank2 = i; // a second pair is add --> This is for Two Pair
+                }
+                pairCount ++; //adding onto general pair count
+            }
+        }
+        // testing/debugging codes
+        System.out.println("fourOfAKind: " + fourOfAKind);
+        System.out.println("threeOfAKind: " + threeOfAKind);
+        System.out.println("pairCount: " + pairCount);
+        System.out.println("flush: " + flush);
+        System.out.println("straight: " + isStraight);
+    
+        if (flush && isStraight && allCards.get(allCards.size() - 1).getRank().equals("A")) { // checking for a royal flush with flush + straight
             return "Royal Flush";
         }
 
-        // if (flush && isStraight) {
-        //     boolean royalFlush = true;
-        //     String[] royalRanks = {"10", "J", "Q", "K", "A"};
-        //     for (String rank : royalRanks) {
-        //         boolean found = false;
-        //         for (Card card : allCards) {
-        //             if (card.getRank().equals(rank) && card.getSuit().equals(flushSuit)) {
-        //                 found = true;
-        //                 break;
-        //             }
-        //         }
-        //         if (!found) {
-        //             royalFlush = false;
-        //             break;
-        //         }
-        //     }
-        //     if (royalFlush) return "Royal Flush";
-        // }
-
-
-
-        // if (flush  && isStraight && allCards.get(allCards.size() - 1).getRank().equals("A")) {
-        //     return "Royal Flush";
-        // }
-
-
-        if (flush && isStraight) {
+        if (flush && isStraight) { // checking for just a Straight Flush with flush and isStraight
             return "Straight Flush";
         }
 
-        if (fourOfAKind == 1) {
+        if (fourOfAKind == 1) { // checking to see if fourOfAKind appeared once 
             return "Four of a Kind";
         }
 
-        if (threeOfAKind == 1 && pairCount >= 1) {
+        if (threeOfAKind == 1 && pairCount >= 1) { // checking to see if a pair and a three appeared -- Full House
             return "Full House";
         }
 
-        if (flush) {
-            return "Flush";
-        }
-
-        if (isStraight) {
-            return "Straight";
-        }
-
-        if (threeOfAKind == 1) {
+        if (threeOfAKind == 1) { // Checking to see if a three appeared
             return "Three of a Kind";
         }
 
-        if (pairCount == 2) {
+
+        if (flush) { // checks for a flush
+            return "Flush";
+        }
+
+        if (isStraight) { // checks for a straight
+            return "Straight";
+        }
+
+        if (pairCount == 2) { // checks for a two pair
             return "Two Pair";
         }
 
-        if (pairCount == 1) {
+        if (pairCount == 1) { // checks for a single pair
             return "A Pair";
         }
 
-        // boolean highCard = false;
-        // for (int i = 0; i < allCards.size(); i ++) {
-        //     if (hand.get(0) != allCards.get(i) && hand.get(1) != allCards.get(i)) {
-        //         highCard = false;
-        //         if (getRankNum(hand.get(0)) > getRankNum(allCards.get(i)) || getRankNum(hand.get(1)) > getRankNum(allCards.get(i))) {
-        //             highCard = true;
-        //         }
-        //     }
-        // }
-
-
-        // if (highCard == true) {
-        //     return "High Card";
-        // }
-        int highestHandCardRank = getRankNum(hand.get(0));
-        if (getRankNum(hand.get(1)) > highestHandCardRank) {
-            highestHandCardRank = getRankNum(hand.get(1));
-        }
-   
-        int highestCombinedCardRank = 0;
-        for (Card card : allCards) {
-            int rank = getRankNum(card);
-            if (rank > highestCombinedCardRank) {
-                highestCombinedCardRank = rank;
+        int highestPlayerCardValue = Utility.getRankValue(allCards.get(allCards.size() - 1).getRank()); // getting highest possible card
+        for (int i = communityCards.size() - 1; i >= 0; i--) { // iterates through community card
+            if (Utility.getRankValue(communityCards.get(i).getRank()) == highestPlayerCardValue) { // checking if the high card is in the community cards
+                return "Nothing"; // will return nothing if the highest card is in the community cards
             }
         }
-   
-        if (highestHandCardRank > highestCombinedCardRank) {
-            return "High Card";
-        }
-   
-        return "Nothing";        
+        
+        return "High Card"; // Returns High Card if all other cases fail
     }
 
     public void sortAllCards() {
-        for (int i = 1; i < allCards.size(); i ++) {
-            Card one = allCards.get(i);
-            int oneVal = Utility.getRankValue(one.getRank());
+        for (int i = 1; i < allCards.size(); i ++) { // iterating through all cards
+            Card one = allCards.get(i); // isolating a single card for checking
+            int oneVal = Utility.getRankValue(one.getRank()); // isolating the rank of the current card
             int j = i - 1;
 
-            while (j >= 0 && Utility.getRankValue(allCards.get(j).getRank()) > oneVal) {
-                allCards.set(j + 1, allCards.get(j));
+            while (j >= 0 && Utility.getRankValue(allCards.get(j).getRank()) > oneVal) { // Shifting the cards to the right until they reach the correct pos.
+                allCards.set(j + 1, allCards.get(j)); 
                 j --;
             }
-            allCards.set(j + 1, one);
+            allCards.set(j + 1, one); // insers the current card into the sorted pos.
         }
     } 
 
     public ArrayList<Integer> findRankingFrequency(){
-        ArrayList<Integer> frequency = new ArrayList<Integer>(13);
-        for (int i = 0; i < 13; i ++) {
+        ArrayList<Integer> frequency = new ArrayList<>(13); // creates a frequency array with 13 slots
+        for (int i = 0; i < 13; i++) { // iterates through each element in the new array and initializes them to 0
             frequency.add(0);
         }
-        ArrayList<Card> combined = new ArrayList<Card>(hand);
-        for (Card one : allCards) {
-            combined.add(one);
-        }
-
-        for (Card one : combined) {
-            int rank = Utility.getRankValue(one.getRank()) - 2;
-            if (rank >= 0 && rank < 13) {
-                frequency.set(rank, frequency.get(rank) + 1);
+    
+        for (Card one : allCards) { // iterates through all the cards
+            int rank = Utility.getRankValue(one.getRank()) - 2; // gets the rank value and adjusts it to the array idx 
+            if (rank >= 0 && rank < 13) { // cgecks if the rank is a valid rank in Utility
+                frequency.set(rank, frequency.get(rank) + 1); // adds frequency for the current rank
             }
         }
-        return frequency; 
+        return frequency; // returns a frequency array
     }
 
     public ArrayList<Integer> findSuitFrequency(){
-        ArrayList<Integer> frequency = new ArrayList<Integer>(4);
-        for (int i = 0; i < 4; i ++) {
+        ArrayList<Integer> frequency = new ArrayList<Integer>(4); // makes a new frequency list
+        for (int i = 0; i < 4; i ++) { // iterates through all values (4) in frequency list and initializes them to 0
             frequency.add(0);
         }
 
-        ArrayList<Card> combined = new ArrayList<Card>(hand);
-        for (Card one : allCards) {
+        ArrayList<Card> combined = new ArrayList<Card>(hand); // makes a new combined array list and fills it with hand cards
+        for (Card one : allCards) {  // addes allCards onto combined list
             combined.add(one);
         }
 
-        for (Card one : combined) {
-            String suit = one.getSuit();
-            for (int i = 0; i < Utility.getSuits().length; i ++) {
-                if (Utility.getSuits()[i].equals(suit)) {
-                    frequency.set(i, frequency.get(i) + 1);
+        for (Card one : combined) { // iterates through all combined cards
+            String suit = one.getSuit(); // isolates the current suit 
+            for (int i = 0; i < Utility.getSuits().length; i ++) { //iterates through all possible suits from Utility
+                if (Utility.getSuits()[i].equals(suit)) { // checks if the current suit equals one from Utlitity
+                    frequency.set(i, frequency.get(i) + 1); // Updates the frequency of the found suit
                 }
             }
         }
-        return frequency; 
+        return frequency; // returns a frequency array
     }
 
-    private int getRankNum(Card rank) {
-        return Utility.getRankValue(rank.getRank());
-    }
 
     @Override
     public String toString(){
